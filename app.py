@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-import plotly.express as px
-import plotly.graph_objects as go
 
 # Page configuration
 st.set_page_config(page_title="Hospital Data Management", layout="wide", initial_sidebar_state="expanded")
@@ -26,7 +24,7 @@ CATEGORIES = ['Patient Admission', 'Patient Discharge', 'Emergency Cases', 'Surg
 TYPES = ['General Ward', 'ICU', 'Emergency', 'OPD', 'Emergency Surgery', 'Diagnostic']
 
 # Sidebar - Navigation
-st.sidebar.title("Navigation")
+st.sidebar.title("🏥 Navigation")
 page = st.sidebar.radio("Select Page:", ["Data Entry", "Dashboard", "View Data"])
 
 # Load data
@@ -54,7 +52,7 @@ if page == "Data Entry":
     
     notes = st.text_area("Notes (Optional):", placeholder="Add any additional notes here...")
     
-    if st.button("Submit Data", use_container_width=True):
+    if st.button("✅ Submit Data", use_container_width=True):
         if user_name:
             new_entry = pd.DataFrame({
                 'Date': [datetime.now().strftime("%Y-%m-%d")],
@@ -70,7 +68,7 @@ if page == "Data Entry":
             st.success(f"✅ Data submitted successfully by {user_name}!")
             st.balloons()
         else:
-            st.error("Please enter your name!")
+            st.error("❌ Please enter your name!")
 
 elif page == "Dashboard":
     st.title("📊 Hospital Dashboard")
@@ -88,7 +86,7 @@ elif page == "Dashboard":
             st.metric("Today's Entries", today_count)
         
         with col3:
-            st.metric("Total Count", df['Count'].sum())
+            st.metric("Total Count", int(df['Count'].sum()))
         
         with col4:
             unique_users = df['User'].nunique()
@@ -96,21 +94,18 @@ elif page == "Dashboard":
         
         st.divider()
         
-        # Charts
+        # Charts using Streamlit native charting
         col1, col2 = st.columns(2)
         
         with col1:
             st.subheader("Entries by Category")
             category_data = df['Category'].value_counts()
-            fig = px.pie(values=category_data.values, names=category_data.index, hole=0.3)
-            st.plotly_chart(fig, use_container_width=True)
+            st.bar_chart(category_data)
         
         with col2:
             st.subheader("Count by Category")
             count_by_category = df.groupby('Category')['Count'].sum().sort_values(ascending=False)
-            fig = px.bar(x=count_by_category.index, y=count_by_category.values, 
-                        labels={'x': 'Category', 'y': 'Total Count'})
-            st.plotly_chart(fig, use_container_width=True)
+            st.bar_chart(count_by_category)
         
         st.divider()
         
@@ -119,18 +114,14 @@ elif page == "Dashboard":
         with col1:
             st.subheader("Entries by Type")
             type_data = df['Type'].value_counts()
-            fig = px.bar(x=type_data.index, y=type_data.values, 
-                        labels={'x': 'Type', 'y': 'Number of Entries'})
-            st.plotly_chart(fig, use_container_width=True)
+            st.bar_chart(type_data)
         
         with col2:
-            st.subheader("User Activity")
+            st.subheader("User Activity (Top 10)")
             user_data = df['User'].value_counts().head(10)
-            fig = px.bar(x=user_data.values, y=user_data.index, orientation='h',
-                        labels={'x': 'Number of Entries', 'y': 'User'})
-            st.plotly_chart(fig, use_container_width=True)
+            st.bar_chart(user_data)
     else:
-        st.info("No data yet. Start entering data from the Data Entry section!")
+        st.info("ℹ️ No data yet. Start entering data from the Data Entry section!")
 
 elif page == "View Data":
     st.title("📑 View All Data")
@@ -159,13 +150,13 @@ elif page == "View Data":
         # Download CSV
         csv = filtered_df.to_csv(index=False)
         st.download_button(
-            label="Download as CSV",
+            label="📥 Download as CSV",
             data=csv,
             file_name=f"hospital_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
             mime="text/csv"
         )
     else:
-        st.info("No data available yet!")
+        st.info("ℹ️ No data available yet!")
 
 st.sidebar.divider()
 st.sidebar.info("💡 Tip: This app automatically saves all data. Multiple users can submit data simultaneously!")
